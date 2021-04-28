@@ -5,8 +5,10 @@ import android.graphics.*
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import kotlin.properties.Delegates
 
 class GameView(context: Context?) : View(context) {
     private var runnable: Runnable = Runnable {
@@ -14,13 +16,12 @@ class GameView(context: Context?) : View(context) {
     }
     private val updateTime: Long = 50
     private var background: Bitmap
-    private var point: Point
     private var windowManager: WindowManager
     private var displayMetrics: DisplayMetrics
     private var height: Int? = null
     private var width: Int? = null
-    private var birdWidth: Int? = null
-    private var birdHeight: Int? = null
+    private var birdWidth by Delegates.notNull<Int>()
+    private var birdHeight by Delegates.notNull<Int>()
     private var rect: Rect
     private var birds: ArrayList<Bitmap> = arrayListOf()
     private var birdFrame = 0
@@ -44,7 +45,8 @@ class GameView(context: Context?) : View(context) {
         display.getMetrics(displayMetrics)
         width = displayMetrics.widthPixels
         height = displayMetrics.heightPixels
-        point = Point()
+        birdWidth = (width!! /2) - (birds[0].width/2)
+        birdHeight = (height!! /2) - (birds[0].height/2)
         rect = Rect(0, 0, width!!, height!!)
     }
 
@@ -62,10 +64,20 @@ class GameView(context: Context?) : View(context) {
             else -> 0
         }
 
-        birdWidth = (width!! /2) - (birds[0].width/2)
-        birdHeight = (height!! /2) - (birds[0].height/2)
+        if(birdHeight < height!! - birds[0].height || velocity < 0) {
+            velocity += gravity
+            birdHeight += velocity
+        }
 
-        canvas?.drawBitmap(birds[birdFrame], birdWidth!!.toFloat(), birdHeight!!.toFloat(), null)
+        canvas?.drawBitmap(birds[birdFrame], birdWidth.toFloat(), birdHeight.toFloat(), null)
             Handler(Looper.getMainLooper()).postDelayed(runnable, updateTime)
+    }
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        val action = event!!.action
+        if(action == MotionEvent.ACTION_DOWN) {
+            velocity = -30
+        }
+        return true
     }
 }
