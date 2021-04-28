@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">My Flappy Bird</string>
+    <string name="title">Flappy Bird</string>
+    <string name="get_ready">Get Ready to play!!!</string>
+</resources>
