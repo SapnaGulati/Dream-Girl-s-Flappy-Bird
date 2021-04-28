@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import kotlin.properties.Delegates
+import kotlin.random.Random
 
 class GameView(context: Context?) : View(context) {
     private var runnable: Runnable = Runnable {
@@ -16,6 +17,8 @@ class GameView(context: Context?) : View(context) {
     }
     private val updateTime: Long = 50
     private var background: Bitmap
+    private var topTube: Bitmap
+    private var bottomTube: Bitmap
     private var windowManager: WindowManager
     private var displayMetrics: DisplayMetrics
     private var height: Int? = null
@@ -27,6 +30,15 @@ class GameView(context: Context?) : View(context) {
     private var birdFrame = 0
     private var velocity = 0
     private var gravity = 3
+    private var gameState = false
+    private var gap = 400
+    private var minTubeOffset by Delegates.notNull<Int>()
+    private var maxTubeOffset by Delegates.notNull<Int>()
+    private var numberOfTubes = 4
+    private var distanceBetweenTubes by Delegates.notNull<Int>()
+    private var tubeX by Delegates.notNull<Int>()
+    private var topTubeY by Delegates.notNull<Int>()
+    private lateinit var random: Random
 
     init {
         birds.add(BitmapFactory.decodeResource(resources, R.drawable.frame_0))
@@ -39,6 +51,8 @@ class GameView(context: Context?) : View(context) {
         birds.add(BitmapFactory.decodeResource(resources, R.drawable.frame_7))
 
         background = BitmapFactory.decodeResource(resources, R.drawable.background)
+        topTube = BitmapFactory.decodeResource(resources, R.drawable.top_pipe)
+        bottomTube = BitmapFactory.decodeResource(resources, R.drawable.pipe)
         windowManager = context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val display = windowManager.defaultDisplay
         displayMetrics = DisplayMetrics()
@@ -48,6 +62,10 @@ class GameView(context: Context?) : View(context) {
         birdWidth = (width!! /2) - (birds[0].width/2)
         birdHeight = (height!! /2) - (birds[0].height/2)
         rect = Rect(0, 0, width!!, height!!)
+        distanceBetweenTubes = width!! *3/4
+        minTubeOffset = gap/2
+        maxTubeOffset = height!! - minTubeOffset - gap
+        tubeX = width!!/2 - topTube.width/2
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -64,9 +82,11 @@ class GameView(context: Context?) : View(context) {
             else -> 0
         }
 
-        if(birdHeight < height!! - birds[0].height || velocity < 0) {
-            velocity += gravity
-            birdHeight += velocity
+        if (gameState) {
+            if (birdHeight < height!! - birds[0].height || velocity < 0) {
+                velocity += gravity
+                birdHeight += velocity
+            }
         }
 
         canvas?.drawBitmap(birds[birdFrame], birdWidth.toFloat(), birdHeight.toFloat(), null)
@@ -77,6 +97,7 @@ class GameView(context: Context?) : View(context) {
         val action = event!!.action
         if(action == MotionEvent.ACTION_DOWN) {
             velocity = -30
+            gameState = true
         }
         return true
     }
