@@ -9,7 +9,6 @@ import android.util.DisplayMetrics
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import java.util.concurrent.Executors
 import kotlin.properties.Delegates
 import kotlin.random.Random
 
@@ -88,7 +87,7 @@ class GameView(context: Context?) : View(context) {
             topTubeY[i] = minTubeOffset + random.nextInt(maxTubeOffset - minTubeOffset + 1)
         }
     }
-
+    
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.drawBitmap(background, null, rect, null)
@@ -101,12 +100,6 @@ class GameView(context: Context?) : View(context) {
             5 -> 6
             6 -> 7
             else -> 0
-        }
-
-        if (gameOver()) {
-            val executorService = Executors.newSingleThreadExecutor()
-            val task = executorService.submit(runnable)
-            task.cancel(true)
         }
 
         if (gameState) {
