@@ -9,6 +9,7 @@ import android.util.DisplayMetrics
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import java.util.concurrent.Executors
 import kotlin.properties.Delegates
 import kotlin.random.Random
 
@@ -16,7 +17,6 @@ class GameView(context: Context?) : View(context) {
     private var runnable: Runnable = Runnable {
         invalidate()
     }
-    private var mediaPlayerDie: MediaPlayer? = null
     private var mediaPlayerHit: MediaPlayer? = null
     private var mediaPlayerPt: MediaPlayer? = null
     private var mediaPlayerSwoosh: MediaPlayer? = null
@@ -61,7 +61,6 @@ class GameView(context: Context?) : View(context) {
         topTube = BitmapFactory.decodeResource(resources, R.drawable.top_pipe)
         bottomTube = BitmapFactory.decodeResource(resources, R.drawable.pipe)
 
-        mediaPlayerDie = MediaPlayer.create(context, R.raw.gallery_audio_die)
         mediaPlayerHit = MediaPlayer.create(context, R.raw.gallery_audio_hit)
         mediaPlayerPt = MediaPlayer.create(context, R.raw.gallery_audio_point)
         mediaPlayerSwoosh = MediaPlayer.create(context, R.raw.gallery_audio_swoosh)
@@ -104,7 +103,13 @@ class GameView(context: Context?) : View(context) {
             else -> 0
         }
 
-        if (gameState && !gameOver()) {
+        if (gameOver()) {
+            val executorService = Executors.newSingleThreadExecutor()
+            val task = executorService.submit(runnable)
+            task.cancel(true)
+        }
+
+        if (gameState) {
             if (birdHeight < height!! - birds[0].height + 89|| velocity < 0 ) {
                 velocity += gravity
                 birdHeight += velocity
@@ -137,9 +142,9 @@ class GameView(context: Context?) : View(context) {
     private fun gameOver(): Boolean {
         if (birdHeight < 0) {
             mediaPlayerHit?.start()
-            val gameOver = GameOver(this)
-            return true
+//            val gameOver = GameOver(context)
         }
+
 //        if playery > GROUNDY - 25 or playery < 0:
 //        GAME_SOUNDS['hit'].play()
 //        return True
