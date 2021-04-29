@@ -2,6 +2,7 @@ package com.example.myflappybird
 
 import android.content.Context
 import android.graphics.*
+import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
@@ -15,6 +16,11 @@ class GameView(context: Context?) : View(context) {
     private var runnable: Runnable = Runnable {
         invalidate()
     }
+    private var mediaPlayerDie: MediaPlayer? = null
+    private var mediaPlayerHit: MediaPlayer? = null
+    private var mediaPlayerPt: MediaPlayer? = null
+    private var mediaPlayerSwoosh: MediaPlayer? = null
+    private var mediaPlayerWing: MediaPlayer? = null
     private val updateTime: Long = 50
     private var background: Bitmap
     private var topTube: Bitmap
@@ -55,6 +61,12 @@ class GameView(context: Context?) : View(context) {
         topTube = BitmapFactory.decodeResource(resources, R.drawable.top_pipe)
         bottomTube = BitmapFactory.decodeResource(resources, R.drawable.pipe)
 
+        mediaPlayerDie = MediaPlayer.create(context, R.raw.gallery_audio_die)
+        mediaPlayerHit = MediaPlayer.create(context, R.raw.gallery_audio_hit)
+        mediaPlayerPt = MediaPlayer.create(context, R.raw.gallery_audio_point)
+        mediaPlayerSwoosh = MediaPlayer.create(context, R.raw.gallery_audio_swoosh)
+        mediaPlayerWing = MediaPlayer.create(context, R.raw.gallery_audio_wing)
+
         windowManager = context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val display = windowManager.defaultDisplay
         displayMetrics = DisplayMetrics()
@@ -63,8 +75,12 @@ class GameView(context: Context?) : View(context) {
         height = displayMetrics.heightPixels
         birdWidth = (width!! /2) - (birds[0].width/2)
         birdHeight = (height!! /2) - (birds[0].height/2)
-        rect = Rect(0, 0, width!!, height!!)
-        distanceBetweenTubes = width!! *3/4
+
+        topTube = Bitmap.createScaledBitmap(topTube, topTube.width * 6/5, height!! , true)
+        bottomTube = Bitmap.createScaledBitmap(bottomTube, bottomTube.width * 6/5, height!!, true)
+
+        rect = Rect(0, 0, width!!, height!! + 102)
+        distanceBetweenTubes = width!! * 3/4
         minTubeOffset = gap/2
         maxTubeOffset = height!! - minTubeOffset - gap
         random = Random
@@ -88,8 +104,8 @@ class GameView(context: Context?) : View(context) {
             else -> 0
         }
 
-        if (gameState) {
-            if (birdHeight < height!! - birds[0].height || velocity < 0) {
+        if (gameState && !gameOver()) {
+            if (birdHeight < height!! - birds[0].height + 89|| velocity < 0 ) {
                 velocity += gravity
                 birdHeight += velocity
             }
@@ -110,10 +126,34 @@ class GameView(context: Context?) : View(context) {
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         val action = event!!.action
+        mediaPlayerWing?.start()
         if(action == MotionEvent.ACTION_DOWN) {
             velocity = -30
             gameState = true
         }
         return true
+    }
+
+    private fun gameOver(): Boolean {
+        if (birdHeight < 0) {
+            mediaPlayerHit?.start()
+            val gameOver = GameOver(this)
+            return true
+        }
+//        if playery > GROUNDY - 25 or playery < 0:
+//        GAME_SOUNDS['hit'].play()
+//        return True
+//
+//        for pipe in upperPipes:
+//        pipeHeight = GAME_SPRITES['pipe'][0].get_height()
+//        if (playery < pipeHeight + pipe['y'] and abs(playerx - pipe['x']) < GAME_SPRITES['pipe'][0].get_width()):
+//        GAME_SOUNDS['hit'].play()
+//        return True
+//
+//        for pipe in lowerPipes:
+//        if (playery + GAME_SPRITES['player'].get_height() > pipe['y']) and abs(playerx - pipe['x']) < GAME_SPRITES['pipe'][0].get_width():
+//        GAME_SOUNDS['hit'].play()
+//        return True
+        return false
     }
 }
