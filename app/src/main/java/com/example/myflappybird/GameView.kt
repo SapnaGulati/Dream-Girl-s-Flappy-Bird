@@ -32,13 +32,14 @@ class GameView(context: Context?) : View(context) {
     private var gravity = 3
     private var gameState = false
     private var gap = 400
+    private var tubeVelocity = 8
     private var minTubeOffset by Delegates.notNull<Int>()
     private var maxTubeOffset by Delegates.notNull<Int>()
     private var numberOfTubes = 4
     private var distanceBetweenTubes by Delegates.notNull<Int>()
-    private var tubeX by Delegates.notNull<Int>()
-    private var topTubeY by Delegates.notNull<Int>()
-    private lateinit var random: Random
+    private var random: Random
+    private val tubeX = (0 until numberOfTubes).toList().toTypedArray()
+    private val topTubeY = (0 until numberOfTubes).toList().toTypedArray()
 
     init {
         birds.add(BitmapFactory.decodeResource(resources, R.drawable.frame_0))
@@ -53,6 +54,7 @@ class GameView(context: Context?) : View(context) {
         background = BitmapFactory.decodeResource(resources, R.drawable.background)
         topTube = BitmapFactory.decodeResource(resources, R.drawable.top_pipe)
         bottomTube = BitmapFactory.decodeResource(resources, R.drawable.pipe)
+
         windowManager = context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val display = windowManager.defaultDisplay
         displayMetrics = DisplayMetrics()
@@ -65,7 +67,11 @@ class GameView(context: Context?) : View(context) {
         distanceBetweenTubes = width!! *3/4
         minTubeOffset = gap/2
         maxTubeOffset = height!! - minTubeOffset - gap
-        tubeX = width!!/2 - topTube.width/2
+        random = Random
+        for (i in 0 until numberOfTubes) {
+            tubeX[i] = width!! + i*distanceBetweenTubes
+            topTubeY[i] = minTubeOffset + random.nextInt(maxTubeOffset - minTubeOffset + 1)
+        }
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -86,6 +92,15 @@ class GameView(context: Context?) : View(context) {
             if (birdHeight < height!! - birds[0].height || velocity < 0) {
                 velocity += gravity
                 birdHeight += velocity
+            }
+            for (i in 0 until numberOfTubes) {
+                tubeX[i] -= tubeVelocity
+                if (tubeX[i] < -topTube.width) {
+                    tubeX[i] += numberOfTubes * distanceBetweenTubes
+                    topTubeY[i] = minTubeOffset + random.nextInt(maxTubeOffset - minTubeOffset + 1)
+                }
+                canvas?.drawBitmap(topTube, tubeX[i].toFloat(), (topTubeY[i] - topTube.height).toFloat(), null)
+                canvas?.drawBitmap(bottomTube, tubeX[i].toFloat(), (topTubeY[i] + gap).toFloat(), null)
             }
         }
 
