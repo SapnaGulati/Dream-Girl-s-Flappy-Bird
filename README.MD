@@ -1,4 +1,4 @@
-# Flappy-Bird Hactober fest 2021
+# Flappy-Bird
 Hacktoberfest is an annual event hosted by DigitalOcean that aims to encourage developers to contribute to open-source projects and give back to the community.
 
 Through this event, many developers gain the confidence to be part of the open-source community, and open-source projects and organizations benefit by getting 
